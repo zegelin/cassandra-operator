@@ -106,6 +106,7 @@ public class ConcatenatedYamlConfigurationLoader implements ConfigurationLoader 
                 })
                 .map(path -> {
                     try {
+                        logger.debug("Loading configuration file \"{}\"", path);
                         return Files.newBufferedReader(path, StandardCharsets.UTF_8);
 
                     } catch (final IOException e) {
