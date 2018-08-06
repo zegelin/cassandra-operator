@@ -1,7 +1,10 @@
 package com.instaclustr.cassandra.k8s;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSortedMap;
+
 import org.apache.cassandra.config.Config;
 import org.apache.cassandra.config.ConfigurationLoader;
 import org.apache.cassandra.exceptions.ConfigurationException;
@@ -12,6 +15,35 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.apache.cassandra.config.Config;
+import org.apache.cassandra.config.ConfigurationLoader;
+import org.apache.cassandra.config.ParameterizedClass;
+import org.apache.cassandra.config.YamlConfigurationLoader;
+import org.apache.cassandra.exceptions.ConfigurationException;
+import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.TypeDescription;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.error.YAMLException;
+import org.yaml.snakeyaml.introspector.MissingProperty;
+import org.yaml.snakeyaml.introspector.Property;
+import org.yaml.snakeyaml.introspector.PropertyUtils;
+
+import java.beans.IntrospectionException;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLStreamHandler;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -67,61 +99,74 @@ public class ConcatenatedYamlConfigurationLoader implements ConfigurationLoader 
         }
     }
 
-    @Override
-    public Config loadConfig() throws ConfigurationException {
-        final String configProperty = System.getProperty("cassandra.config");
-        final Iterable<String> configValues = Splitter.on(':').split(configProperty);
+    static final class ConfigSupplier implements Supplier<Config> {
+        @Override
+        public Config get() {
+            final String configProperty = System.getProperty("cassandra.config");
+            final Iterable<String> configValues = Splitter.on(':').split(configProperty);
 
-        final List<BufferedReader> readers = StreamSupport.stream(configValues.spliterator(), false)
-                .map(Paths::get)
+            final List<BufferedReader> readers = StreamSupport.stream(configValues.spliterator(), false)
+                    .map(Paths::get)
 
-                // recurse into any specified directories and load any config files within
-                .flatMap(path -> {
-                    if (!Files.exists(path)) {
-                        throw new ConfigurationException(String.format("Specified configuration file/directory \"%s\" does not exist.", path));
-                    }
-
-                    if (Files.isDirectory(path)) {
-                        try {
-                            return Files.list(path)
-                                    .sorted();
-
-                        } catch (final IOException e) {
-                            throw new ConfigurationException(String.format("Failed to open directory \"%s\".", path), e);
+                    // recurse into any specified directories and load any config files within
+                    .flatMap(path -> {
+                        if (!Files.exists(path)) {
+                            throw new ConfigurationException(String.format("Specified configuration file/directory \"%s\" does not exist.", path));
                         }
 
-                    } else {
-                        return Stream.of(path);
-                    }
-                })
+                        if (Files.isDirectory(path)) {
+                            try {
+                                return Files.list(path)
+                                        .sorted();
 
-                // only load files
-                .filter(path -> {
-                    if (!Files.isRegularFile(path)) {
-                        logger.warn("Configuration file \"{}\" is not a regular file and will not be loaded.", path);
-                        return false;
-                    }
+                            } catch (final IOException e) {
+                                throw new ConfigurationException(String.format("Failed to open directory \"%s\".", path), e);
+                            }
 
-                    return true;
-                })
-                .map(path -> {
-                    try {
-                        logger.debug("Loading configuration file \"{}\"", path);
-                        return Files.newBufferedReader(path, StandardCharsets.UTF_8);
+                        } else {
+                            return Stream.of(path);
+                        }
+                    })
 
-                    } catch (final IOException e) {
-                        throw new ConfigurationException(String.format("Failed to open configuration file \"%s\" for reading.", path), e);
-                    }
-                })
-                .collect(Collectors.toList());
+                    // only load files
+                    .filter(path -> {
+                        if (!Files.isRegularFile(path)) {
+                            logger.warn("Configuration file \"{}\" is not a regular file and will not be loaded.", path);
+                            return false;
+                        }
+
+                        return true;
+                    })
+                    .map(path -> {
+                        try {
+                            logger.debug("Loading configuration file \"{}\"", path);
+
+                            return Files.newBufferedReader(path, StandardCharsets.UTF_8);
+
+                        } catch (final IOException e) {
+                            throw new ConfigurationException(String.format("Failed to open configuration file \"%s\" for reading.", path), e);
+                        }
+                    })
+                    .collect(Collectors.toList());
 
 
-        try (final Reader reader = new ConcatenatedReader(readers)) {
-            final Yaml yaml = new Yaml();
-            return yaml.loadAs(reader, Config.class);
+            try (final Reader reader = new ConcatenatedReader(readers)) {
+                final Yaml yaml = new Yaml();
 
-        } catch (final IOException e) {
-            throw new ConfigurationException("Exception while loading configuration files.", e);
+                final Config config = yaml.loadAs(reader, Config.class);
+
+                return config == null ? new Config() : config;
+
+            } catch (final IOException | YAMLException e) {
+                throw new ConfigurationException("Exception while loading configuration files.", e);
+            }
         }
+    }
+
+    private static final Supplier<Config> configSupplier = Suppliers.memoize(new ConfigSupplier());
+
+    @Override
+    public Config loadConfig() throws ConfigurationException {
+        return configSupplier.get();
     }
 }

@@ -26,11 +26,22 @@
           "type": "number",
           "javaType": "int"
         },
-        "image" : {
+        "cassandraImage" : {
+          "type": "string"
+        },
+        "sidecarImage" : {
           "type": "string"
         },
         "imagePullPolicy" : {
           "type": "string"
+        },
+        "env" : {
+          "description": "List of environment variables to inject in the Cassandra & Sidecar container.",
+          "type": "array",
+          "items" : {
+            "type" : "object",
+            "javaType": "io.kubernetes.client.models.V1EnvVar"
+          }
         },
         "resources": {
           "description": "Resource requirements for the Cassandra container.",
@@ -40,6 +51,10 @@
         "dataVolumeClaim": {
           "type": "object",
           "javaType": "io.kubernetes.client.models.V1PersistentVolumeClaimSpec"
+        },
+        "restoreFromBackup": {
+          "type" : "string",
+          "description" : "Name of the CassandraBackup to restore from"
         }
       }
     }
