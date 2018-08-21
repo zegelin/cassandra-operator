@@ -1,7 +1,7 @@
 ## Cassandra operator
 Build [![CircleCI](https://circleci.com/gh/instaclustr/cassandra-operator/tree/master.svg?style=svg)](https://circleci.com/gh/instaclustr/cassandra-operator/tree/master)
 
-### Project status: pre-alpha
+### Project status: alpha
 
 Major planned features have yet to be completed and API changes are currently planned, we reserve the right to address bugs and API changes in a backwards incompatible way before the project is declared stable. See [upgrade guide](./doc/user/upgrade/upgrade_guide.md) for safe upgrade process.
 
@@ -16,8 +16,6 @@ The Cassandra operator manages Cassandra clusters deployed to [Kubernetes](http:
 - [Install](#deploy-cassandra-operator)
 - [Create and destroy](#create-and-destroy-an-Cassandra-cluster)
 - [Resize](#resize-an-Cassandra-cluster)
-- [Recover a node](#node-recovery) - _TODO_
-- [Backup and restore a cluster](#disaster-recovery) - _TODO_
 - [Rolling upgrade](#upgrade-an-Cassandra-cluster) - _TODO_
 - [Limitations](#limitations)
 
@@ -28,6 +26,8 @@ Read [Best Practices](./doc/best_practices.md) for more information on how to be
 Read [RBAC docs](./doc/rbac.md) for how to setup RBAC rules for Cassandra operator if RBAC is in place.
 
 Read [Developer Guide](./doc/developers.md) for setting up development environment if you want to contribute.
+
+Read [Backup and Restore Guide](./doc/backup_restore.md) for backing up and restoring Cassandra clusters managed by the operator.
 
 See the [Resources and Labels](./doc/resources.md) doc for an overview of the resources created by the Cassandra-operator.
 
@@ -120,5 +120,4 @@ $ kubectl apply -f example/common/test.yaml
 ## Limitations
 
 - This operator is currently a work in progress and breaking changes are landing in master all the time until we reach our initial release. Here be dragons!
-- The operator does not currently manage backups, a command line backup utility is included, tested and built, but not yet managed by the operator.
-- Do not use this in production.
+- Do not use this in production... yet
