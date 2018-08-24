@@ -13,7 +13,7 @@ arch_pkg_dir="${pkg_dir}/${arch}" && mkdir "${arch_pkg_dir}"
     curl -SLO "https://dl.bintray.com/apache/cassandra/pool/main/c/cassandra/cassandra_${cassandra_version}_all.deb" &&
     curl -SLO "https://dl.bintray.com/apache/cassandra/pool/main/c/cassandra/cassandra-tools_${cassandra_version}_all.deb")
 
-dagi dpkg-dev
+dagi dpkg-dev cpio
 
 # build a local repository
 (cd "${pkg_dir}" && dpkg-scanpackages ${arch} | gzip -9c > "${arch_pkg_dir}/Packages.gz")
@@ -33,6 +33,8 @@ rm -rf /etc/cassandra/* /var/lib/cassandra/*
 # add image config .d directories
 mkdir /etc/cassandra/cassandra.yaml.d
 mkdir /etc/cassandra/cassandra.env.d
+mkdir /etc/cassandra/jvm.options.d
+mkdir /etc/cassandra/logback.xml.d
 
 # clean-up
 rm -rf "${pkg_dir}"

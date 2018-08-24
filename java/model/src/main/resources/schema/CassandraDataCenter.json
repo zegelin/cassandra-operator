@@ -55,6 +55,11 @@
         "restoreFromBackup": {
           "type" : "string",
           "description" : "Name of the CassandraBackup to restore from"
+        },
+        "userConfigMapVolumeSource": {
+          "type" : "object",
+          "javaType": "io.kubernetes.client.models.V1ConfigMapVolumeSource",
+          "description" : "Name of an optional config map that contains cassandra configuration in the form of yaml fragments"
         }
       }
     }

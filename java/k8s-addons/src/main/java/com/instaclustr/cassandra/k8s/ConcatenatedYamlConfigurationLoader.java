@@ -3,7 +3,6 @@ package com.instaclustr.cassandra.k8s;
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableSortedMap;
 
 import org.apache.cassandra.config.Config;
 import org.apache.cassandra.config.ConfigurationLoader;
@@ -16,38 +15,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import org.apache.cassandra.config.Config;
-import org.apache.cassandra.config.ConfigurationLoader;
-import org.apache.cassandra.config.ParameterizedClass;
-import org.apache.cassandra.config.YamlConfigurationLoader;
-import org.apache.cassandra.exceptions.ConfigurationException;
-import org.apache.commons.lang3.SystemUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.TypeDescription;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.error.YAMLException;
-import org.yaml.snakeyaml.introspector.MissingProperty;
-import org.yaml.snakeyaml.introspector.Property;
-import org.yaml.snakeyaml.introspector.PropertyUtils;
-
-import java.beans.IntrospectionException;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.Reader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLStreamHandler;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,6 +32,8 @@ import java.util.stream.StreamSupport;
  */
 public class ConcatenatedYamlConfigurationLoader implements ConfigurationLoader {
     private static final Logger logger = LoggerFactory.getLogger(ConcatenatedYamlConfigurationLoader.class);
+
+    private static final PathMatcher YAML_PATH_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**/*.{yaml,yml}");
 
     static class ConcatenatedReader extends Reader {
         private final Queue<Reader> readers;
@@ -99,10 +72,13 @@ public class ConcatenatedYamlConfigurationLoader implements ConfigurationLoader 
         }
     }
 
+
     static final class ConfigSupplier implements Supplier<Config> {
         @Override
         public Config get() {
             final String configProperty = System.getProperty("cassandra.config");
+            logger.info("Loading config from {}", configProperty);
+
             final Iterable<String> configValues = Splitter.on(':').split(configProperty);
 
             final List<BufferedReader> readers = StreamSupport.stream(configValues.spliterator(), false)
@@ -128,27 +104,34 @@ public class ConcatenatedYamlConfigurationLoader implements ConfigurationLoader 
                         }
                     })
 
-                    // only load files
-                    .filter(path -> {
-                        if (!Files.isRegularFile(path)) {
-                            logger.warn("Configuration file \"{}\" is not a regular file and will not be loaded.", path);
-                            return false;
-                        }
 
-                        return true;
-                    })
-                    .map(path -> {
-                        try {
-                            logger.debug("Loading configuration file \"{}\"", path);
+                // only load regular yaml files
+                .filter(path -> {
+                    if (!Files.isRegularFile(path)) {
+                        logger.warn("Configuration file \"{}\" is not a regular file and will not be loaded.", path);
+                        return false;
+                    }
+                    return true;
+                })
 
-                            return Files.newBufferedReader(path, StandardCharsets.UTF_8);
+                .filter(path -> {
+                    if(!YAML_PATH_MATCHER.matches(path)) {
+                        logger.warn("Configuration file \"{}\" is not a YAML file and will not be loaded.", path);
+                        return false;
+                    }
+                    logger.info("Loading configuration file \"{}\"", path);
+                    return true;
+                })
 
-                        } catch (final IOException e) {
-                            throw new ConfigurationException(String.format("Failed to open configuration file \"%s\" for reading.", path), e);
-                        }
-                    })
-                    .collect(Collectors.toList());
+                .map(path -> {
+                    try {
+                        return Files.newBufferedReader(path, StandardCharsets.UTF_8);
 
+                    } catch (final IOException e) {
+                        throw new ConfigurationException(String.format("Failed to open configuration file \"%s\" for reading.", path), e);
+                    }
+                })
+                .collect(Collectors.toList());
 
             try (final Reader reader = new ConcatenatedReader(readers)) {
                 final Yaml yaml = new Yaml();
@@ -163,10 +146,10 @@ public class ConcatenatedYamlConfigurationLoader implements ConfigurationLoader 
         }
     }
 
-    private static final Supplier<Config> configSupplier = Suppliers.memoize(new ConfigSupplier());
+    private static final Supplier<Config> CONFIG_SUPPLIER = Suppliers.memoize(new ConfigSupplier());
 
     @Override
     public Config loadConfig() throws ConfigurationException {
-        return configSupplier.get();
+        return CONFIG_SUPPLIER.get();
     }
 }
