@@ -40,7 +40,7 @@ public class ConfigMapWatchModule extends AbstractModule {
                                          @Namespace final String namespace) {
 
         final ListCallProvider listCallProvider = (resourceVersion, watch) ->
-                coreApi.listNamespacedConfigMapCall(namespace, null, null, null, null, "operator=instaclustr-cassandra-operator", null, resourceVersion, null, watch, null, null);
+                coreApi.listNamespacedConfigMapCall(namespace, null, null, null, null, "cassandra-datacenter", null, resourceVersion, null, watch, null, null);
 
         return new WatchService<V1ConfigMap, V1ConfigMapList, ConfigMapKey>(apiClient, eventBus,
                 listCallProvider, configMapWatchEventFactory,

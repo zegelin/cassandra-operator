@@ -59,7 +59,7 @@ public class DataCenterReconciliationController {
         this.dataCenterMetadata = dataCenter.getMetadata();
         this.dataCenterSpec = dataCenter.getSpec();
 
-        this.dataCenterLabels = ImmutableMap.of("cassandra-datacenter", dataCenterMetadata.getName(), "operator", "instaclustr-cassandra-operator"); //hard code an indentifier for DCs created by this operator
+        this.dataCenterLabels = ImmutableMap.of("cassandra-datacenter", dataCenterMetadata.getName());
     }
 
     public void reconcileDataCenter() throws Exception {
@@ -195,7 +195,7 @@ public class DataCenterReconciliationController {
                     .mountPath(configMapVolumeMount.mountPath)
             );
 
-            //provide access to config map volumes in the sidecar, these reside in /tmp though and are not overlayed into /etc/cassandra
+            // provide access to config map volumes in the sidecar, these reside in /tmp though and are not overlayed into /etc/cassandra
             sidecarContainer.addVolumeMountsItem(new V1VolumeMount()
                     .name(configMapVolumeMount.name)
                     .mountPath(configMapVolumeMount.mountPath));
