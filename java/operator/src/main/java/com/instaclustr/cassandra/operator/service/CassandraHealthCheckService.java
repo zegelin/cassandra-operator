@@ -78,8 +78,7 @@ public class CassandraHealthCheckService extends AbstractScheduledService {
 
                     logger.debug("{}", status);
 
-                    //Notify of decommissioned status
-                    if ((previousStatus != null && !previousStatus.equals(status)) || status.operationMode.equals(CassandraConnection.Status.OperationMode.DECOMMISSIONED)) {
+                    if (!status.equals(previousStatus)) {
                         eventBus.post(new CassandraNodeStatusChangedEvent(pod, dataCenterKey, previousStatus, status));
                     }
 

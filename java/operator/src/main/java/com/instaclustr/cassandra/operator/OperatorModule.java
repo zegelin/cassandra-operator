@@ -5,6 +5,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
 import com.instaclustr.cassandra.operator.controller.DataCenterControllerFactory;
+import com.instaclustr.cassandra.operator.jmx.CassandraModule;
 import com.instaclustr.cassandra.operator.modules.*;
 import com.instaclustr.cassandra.operator.service.BackupControllerService;
 import com.instaclustr.cassandra.operator.service.CassandraHealthCheckService;
@@ -29,5 +30,7 @@ public class OperatorModule extends AbstractModule {
         install(new StatefulSetWatchModule());
         install(new ConfigMapWatchModule());
         install(new BackupWatchModule());
+
+        install(new CassandraModule());
     }
 }

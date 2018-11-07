@@ -7,6 +7,7 @@ import com.instaclustr.cassandra.operator.event.*;
 import com.instaclustr.cassandra.operator.jmx.CassandraConnection;
 import com.instaclustr.cassandra.operator.model.DataCenter;
 import com.instaclustr.cassandra.operator.model.key.DataCenterKey;
+import io.kubernetes.client.models.V1beta2StatefulSetStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -55,11 +56,17 @@ public class OperatorService extends AbstractExecutionThreadService {
     void handleStatefulSetEvent(final StatefulSetWatchEvent event) {
         logger.trace("Received StatefulSetWatchEvent {}.", event);
 
-        // Trigger a dc reconciliation event if changes to the stateful set has finished.
-        if (event.statefulSet.getStatus().getReplicas().equals(event.statefulSet.getStatus().getReadyReplicas()) && event.statefulSet.getStatus().getCurrentReplicas().equals(event.statefulSet.getStatus().getReplicas())) {
-            String datacenterName = event.statefulSet.getMetadata().getLabels().get("cassandra-datacenter");
-            if (datacenterName != null)
-                dataCenterQueue.add(new DataCenterKey(event.statefulSet.getMetadata().getNamespace(), datacenterName));
+        // trigger a dc reconciliation event if changes to the stateful set have finished.
+        {
+            final V1beta2StatefulSetStatus statefulSetStatus = event.statefulSet.getStatus();
+
+            // TODO: is is necessary to compare both current- and readyReplicas?
+            if (statefulSetStatus.getReplicas().equals(statefulSetStatus.getReadyReplicas()) && statefulSetStatus.getCurrentReplicas().equals(statefulSetStatus.getReplicas())) {
+                final String datacenterName = event.statefulSet.getMetadata().getLabels().get("cassandra-datacenter");
+                if (datacenterName != null) {
+                    dataCenterQueue.add(new DataCenterKey(event.statefulSet.getMetadata().getNamespace(), datacenterName));
+                }
+            }
         }
     }
 
@@ -76,9 +83,6 @@ public class OperatorService extends AbstractExecutionThreadService {
     @Subscribe
     void handleCassandraNodeOperationModeChangedEvent(final CassandraNodeStatusChangedEvent event) {
         logger.trace("Received CassandraNodeStatusChangedEvent from {} to {}.", event.previousStatus, event.currentStatus);
-
-        if (event.previousStatus.operationMode == event.currentStatus.operationMode)
-            return;
 
         if (!RECONCILE_OPERATION_MODES.contains(event.currentStatus.operationMode))
             return;
