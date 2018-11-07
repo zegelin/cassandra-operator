@@ -22,7 +22,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
-        <guice.version>4.2.0</guice.version>
+        <guice.version>4.2.2</guice.version>
     </properties>
 
     <dependencyManagement>
@@ -43,21 +43,21 @@
             <dependency>
                 <groupId>io.kubernetes</groupId>
                 <artifactId>client-java</artifactId>
-                <version>1.0.0-beta3</version>
+                <version>3.0.0</version>
             </dependency>
 
 
             <dependency>
                 <groupId>info.picocli</groupId>
                 <artifactId>picocli</artifactId>
-                <version>3.0.0-alpha-6</version>
+                <version>3.7.0</version>
             </dependency>
 
 
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>24.1-jre</version>
+                <version>27.0-jre</version>
             </dependency>
 
 
