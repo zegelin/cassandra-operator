@@ -98,7 +98,7 @@ func CreateOrUpdateStatefulSet(
 				log.Info("No Cassandra nodes have been decommissioned. Decommissioning the newest one " + newestPod.Name)
 
 				if clientForNewestPod := sidecar.ClientFromPods(clients, newestPod); clientForNewestPod != nil {
-					if _, err := clientForNewestPod.DecommissionNode(); err != nil {
+					if _, err := clientForNewestPod.Decommission(sidecar.DecommissionOperation{}); err != nil {
 						return errors.New(fmt.Sprintf("Unable to decommission node %s: %v", newestPod.Name, err))
 					}
 				} else {
@@ -348,7 +348,7 @@ func cassandraStatuses(podClients map[*corev1.Pod]*sidecar.Client) map[*corev1.P
 
 	for pod, c := range podClients {
 		go func(pod *corev1.Pod, client *sidecar.Client) {
-			if response, err := client.GetStatus(); err != nil {
+			if response, err := client.Status(); err != nil {
 				podByOperationMode[pod] = sidecar.OPERATION_MODE_ERROR
 			} else {
 				podByOperationMode[pod] = response.OperationMode
