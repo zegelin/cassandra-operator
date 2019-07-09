@@ -30,9 +30,13 @@ public abstract class MapBackedTypeIdResolver<T> extends TypeIdResolverBase {
         return typeMappings.inverse().get(suggestedType);
     }
 
+    public Class<? extends T> classFromId(final String id) {
+        return typeMappings.get(id);
+    }
+
     @Override
     public JavaType typeFromId(final DatabindContext context, final String id) {
-        final Class<? extends T> requestClass = typeMappings.get(id);
+        final Class<? extends T> requestClass = classFromId(id);
 
         if (requestClass == null) {
             return null;

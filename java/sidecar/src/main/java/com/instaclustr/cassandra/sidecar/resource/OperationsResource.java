@@ -1,23 +1,21 @@
 package com.instaclustr.cassandra.sidecar.resource;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.instaclustr.cassandra.sidecar.operations.Operation;
 import com.instaclustr.cassandra.sidecar.operations.OperationRequest;
 import com.instaclustr.cassandra.sidecar.operations.OperationsService;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 @Path("/operations")
 @Produces(MediaType.APPLICATION_JSON)
@@ -31,8 +29,14 @@ public class OperationsResource {
     }
 
     @GET
-    public Collection<Operation> getOperations() {
-        return operationsService.operations().values();
+    public Collection<Operation> getOperations(@QueryParam("type") final Set<Class<? extends Operation>> operationTypesFilter) {
+        Collection<Operation> operations = operationsService.operations().values();
+
+        if (!operationTypesFilter.isEmpty()) {
+            operations = Collections2.filter(operations, input -> operationTypesFilter.contains(input.getClass()));
+        }
+
+        return operations;
     }
 
     @GET
