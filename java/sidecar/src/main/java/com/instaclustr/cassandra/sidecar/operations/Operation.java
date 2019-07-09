@@ -19,7 +19,7 @@ public abstract class Operation<RequestT extends OperationRequest> implements Ru
 
     private static final Logger logger = LoggerFactory.getLogger(Operation.class);
 
-    static class TypeIdResolver extends MapBackedTypeIdResolver<Operation> {
+    public static class TypeIdResolver extends MapBackedTypeIdResolver<Operation> {
         @Inject
         public TypeIdResolver(final Map<String, Class<? extends Operation>> typeMappings) {
             super(typeMappings);
