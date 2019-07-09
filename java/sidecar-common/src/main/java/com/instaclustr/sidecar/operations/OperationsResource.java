@@ -47,6 +47,12 @@ public class OperationsResource {
     }
 
     @POST
+    @Path("filter")
+    public Collection<Operation> operations(@Valid @NotNull OperationsFilter operationsFilter) {
+        return operationsService.operations(operationsFilter);
+    }
+
+    @POST
     public Response createNewOperation(@Valid final OperationRequest request) {
         final Operation operation = operationsService.submitOperationRequest(request);
 

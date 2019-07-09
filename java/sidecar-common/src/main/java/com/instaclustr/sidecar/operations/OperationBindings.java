@@ -32,6 +32,7 @@ public final class OperationBindings {
 
         final TypeLiteral<Class<? extends OperationRequest>> operationRequestClassType = new TypeLiteral<Class<? extends OperationRequest>>() {};
         final TypeLiteral<Class<? extends Operation>> operationClassType = new TypeLiteral<Class<? extends Operation>>() {};
+        final TypeLiteral<OperationType> operationTypeTypeLiteral = new TypeLiteral<OperationType>(){};
 
         // get Guice to create the AssistedInject OperationFactory implementation for the Operation class
         // to allow creation Operations from their OperationRequests
@@ -52,5 +53,10 @@ public final class OperationBindings {
         // this allows Operation.TypeIdResolver to lookup the Class for a given typeId (and vice versa)
         MapBinder.newMapBinder(binder, TypeLiteral.get(OperationType.class), operationClassType)
                 .addBinding(typeId).toInstance(operationClass);
+
+        // add an entry to the Map<String, OperationType> for the typeId.
+        // this allows StringToOperationTypeConverter to lookup the OperationType for a given typeId
+        MapBinder.newMapBinder(binder, TypeLiteral.get(String.class), operationTypeTypeLiteral)
+                .addBinding(typeId.toString().toLowerCase()).toInstance(typeId);
     }
 }

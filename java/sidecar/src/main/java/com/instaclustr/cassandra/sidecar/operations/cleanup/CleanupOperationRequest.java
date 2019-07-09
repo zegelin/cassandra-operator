@@ -7,6 +7,7 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import com.instaclustr.cassandra.sidecar.operations.CassandraOperationType;
 import com.instaclustr.sidecar.operations.OperationRequest;
 
 /**
@@ -67,6 +68,7 @@ public class CleanupOperationRequest extends OperationRequest {
         this.jobs = jobs;
         this.keyspace = keyspace;
         this.tables = tables;
+        this.type = CassandraOperationType.CLEANUP;
     }
 
     @Override

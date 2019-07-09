@@ -6,6 +6,7 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import com.instaclustr.cassandra.sidecar.operations.CassandraOperationType;
 import com.instaclustr.sidecar.operations.OperationRequest;
 
 @SuppressWarnings("WeakerAccess")
@@ -21,6 +22,7 @@ public class BackupOperationRequest extends OperationRequest {
         this.destinationUri = destinationUri;
         this.snapshotName = snapshotName;
         this.keyspaces = keyspaces;
+        this.type = CassandraOperationType.BACKUP;
     }
 
     @Override

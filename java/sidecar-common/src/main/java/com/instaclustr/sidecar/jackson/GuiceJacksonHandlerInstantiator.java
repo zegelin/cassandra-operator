@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
+import com.fasterxml.jackson.databind.util.Converter;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -22,6 +23,12 @@ public class GuiceJacksonHandlerInstantiator extends HandlerInstantiator {
     @Inject
     public GuiceJacksonHandlerInstantiator(final Injector injector) {
         this.injector = injector;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Converter<?, ?> converterInstance(final MapperConfig<?> config, final Annotated annotated, final Class<?> implClass) {
+        return injector.getInstance((Class<? extends Converter>) implClass);
     }
 
     @SuppressWarnings("unchecked")

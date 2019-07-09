@@ -7,6 +7,7 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import com.instaclustr.cassandra.sidecar.operations.CassandraOperationType;
 import com.instaclustr.sidecar.operations.OperationRequest;
 
 /**
@@ -101,6 +102,7 @@ public class ScrubOperationRequest extends OperationRequest {
         this.skipCorrupted = skipCorrupted;
         this.noValidate = noValidate;
         this.reinsertOverflowedTTL = reinsertOverflowedTTL;
+        this.type = CassandraOperationType.SCRUB;
     }
 
     @Override

@@ -7,6 +7,7 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import com.instaclustr.cassandra.sidecar.operations.CassandraOperationType;
 import com.instaclustr.sidecar.operations.OperationRequest;
 
 /**
@@ -77,6 +78,7 @@ public class UpgradeSSTablesOperationRequest extends OperationRequest {
         this.keyspace = keyspace;
         this.tables = tables;
         this.includeAllSSTables = includeAllSSTables;
+        this.type = CassandraOperationType.UPGRADESSTABLES;
     }
 
     @Override

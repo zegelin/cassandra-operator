@@ -3,8 +3,8 @@ package com.instaclustr.sidecar.operations;
 import javax.inject.Inject;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import com.instaclustr.sidecar.jackson.MapBackedTypeIdResolver;
@@ -14,7 +14,7 @@ import com.instaclustr.sidecar.jackson.MapBackedTypeIdResolver;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class OperationRequest {
 
-    @JsonProperty("type")
+    @JsonIgnore
     public OperationType type;
 
     static class TypeIdResolver extends MapBackedTypeIdResolver<OperationRequest> {

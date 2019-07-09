@@ -1,6 +1,9 @@
 package com.instaclustr.sidecar.operations;
 
+import static java.util.stream.Collectors.toList;
+
 import javax.inject.Inject;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -58,5 +61,39 @@ public class OperationsService extends AbstractIdleService {
 
     public Optional<Operation> operation(final UUID id) {
         return Optional.ofNullable(operations.get(id));
+    }
+
+    public Collection<Operation> operations(final OperationsFilter operationsFilter) {
+        final Collection<Operation> operations = operationsByType(operationsFilter.type);
+
+        if (operationsFilter.state != null) {
+            return operationsByState(operations, Operation.State.valueOf(operationsFilter.state.toUpperCase()));
+        }
+
+        return operations;
+    }
+
+    private Collection<Operation> operationsByType(final OperationType operationType) {
+        return operationsByType(Collections.unmodifiableCollection(operations.values()), operationType);
+    }
+
+    private Collection<Operation> operationsByState(final Operation.State state) {
+        return operationsByState(Collections.unmodifiableCollection(operations.values()), state);
+    }
+
+    private Collection<Operation> operationsByState(final Collection<Operation> operations, final Operation.State state) {
+        if (state == null) {
+            return Collections.unmodifiableCollection(operations);
+        }
+
+        return operations.stream().filter(entry -> entry.state == state).collect(toList());
+    }
+
+    private Collection<Operation> operationsByType(final Collection<Operation> operations, final OperationType operationType) {
+        if (operationType == null) {
+            return Collections.unmodifiableCollection(operations);
+        }
+
+        return Collections.unmodifiableCollection(operations.stream().filter(entry -> entry.request.type.getClass() == operationType.getClass()).collect(toList()));
     }
 }
