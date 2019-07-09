@@ -2,7 +2,9 @@ package com.instaclustr.sidecar.operations;
 
 import javax.inject.Inject;
 import java.time.Instant;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -28,7 +30,13 @@ public abstract class Operation<RequestT extends OperationRequest> implements Ru
     }
 
     public enum State {
-        PENDING, RUNNING, COMPLETED, FAILED
+        PENDING, RUNNING, COMPLETED, FAILED;
+
+        public static Set<State> TERMINAL_STATES = EnumSet.of(COMPLETED, FAILED);
+
+        public boolean isTerminalState() {
+            return TERMINAL_STATES.contains(this);
+        }
     }
 
     public final UUID id = UUID.randomUUID();
